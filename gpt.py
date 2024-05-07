@@ -241,7 +241,7 @@ class GPT(nn.Module):
         model = GPT(cfg)
         if compile:
             model = torch.compile(model)
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        checkpoint = torch.load(ckpt_path, map_location="cuda")
         # for k, v in checkpoint["model_state_dict"].items():
         #     print(k)
         model.load_state_dict(checkpoint["model_state_dict"], strict=True)
@@ -481,7 +481,7 @@ class GPTActor(GPT):
         model = GPTActor(cfg)
         if compile:
             model = torch.compile(model)
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        checkpoint = torch.load(ckpt_path, map_location="cuda")
         model.load_state_dict(checkpoint["model_state_dict"], strict=True)
         return model
 
@@ -547,7 +547,7 @@ class GPTRewardModel(nn.Module):
         model = GPTRewardModel(cfg)
         if compile:
             model = torch.compile(model)
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        checkpoint = torch.load(ckpt_path, map_location="cuda")
         model.load_state_dict(checkpoint["model_state_dict"], strict=strict)
         return model
 
@@ -588,6 +588,6 @@ class GPTCritic(GPTRewardModel):
         model = GPTCritic(cfg)
         if compile:
             model = torch.compile(model)
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        checkpoint = torch.load(ckpt_path, map_location="cuda")
         model.load_state_dict(checkpoint["model_state_dict"], strict=strict)
         return model

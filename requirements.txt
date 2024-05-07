@@ -71,3 +71,4 @@ Werkzeug
 xxhash
 yapf
 yarl
+sentence-transformers

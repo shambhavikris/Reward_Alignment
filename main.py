@@ -61,7 +61,7 @@ Assitant:"""
         inner_model = next(mods)
 
         generate_gpt2(inner_model, prompt, device)
-        checkpoint = torch.load(ckpt_path + ckpt_file, map_location="cpu")
+        checkpoint = torch.load(ckpt_path + ckpt_file, map_location="cuda")
         torch.save(
             {
                 'step': checkpoint['step'],
@@ -96,7 +96,7 @@ Sentiment:"""
         ckpt_path = '../models/7B/consolidated.00.pth'
         params_path = '../models/7B/params.json'
         tokenizer_path = '../models/tokenizer.model'
-        checkpoint = torch.load(ckpt_path, map_location="cpu")
+        checkpoint = torch.load(ckpt_path, map_location="cuda")
         tokenizer = LLaMATokenizer(model_path=tokenizer_path)
         with open(params_path) as fp:
             params = json.loads(fp.read())
