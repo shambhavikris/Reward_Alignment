@@ -35,7 +35,7 @@ def generate_gpt2(model, prompt, device):
                        temperature=temperature,
                        top_k=top_k)
 
-    res = decode(y[0].cpu().tolist())
+    res = decode(y[0].cuda().tolist())
     end = res.find("<|endoftext|>")
     if end > 0:
         return res[:end]

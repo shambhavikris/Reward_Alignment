@@ -89,12 +89,12 @@ def train(pretrain, batch_size, exp_name, generationmodel):
     train_ds = DahoasRMStaticDataset_Filtered(block_size=1024,
                                      split='train',
                                      current_model_path=generationmodel,
-                                     max_examples=None,
+                                     max_examples=2000,
                                      tokenizer_name="tiktoken/gpt2")
     test_ds = DahoasRMStaticDataset_Filtered(block_size=1024,
                                     split='test',
                                     current_model_path=generationmodel,
-                                    max_examples=None,
+                                    max_examples=200,
                                     tokenizer_name="tiktoken/gpt2")
     trainer = RewardModelTrainer(cfg, device, rm, train_ds, test_ds)
     trainer.fit()
