@@ -2,14 +2,15 @@ from trainers import RewardModelTrainer
 from configs import get_configs
 from gpt import GPTRewardModel
 from dataset import DahoasRMStaticDataset_Filtered
-
+import torch._dynamo
+torch._dynamo.config.suppress_errors = True
 
 device = 'cuda'
 cfg = get_configs("gpt2-medium/dropout")
 cfg.batch_size = 1
 cfg.pretrain = './sft_sft_0_202404201349/sft_sft_0_202404201349_step20000.pt'
 cfg.total_epochs = 1
-cfg.exp_name = 'rm_frft'
+cfg.exp_name = 'rm_frft_may8'
 generationmodel = './sft_sft_0_202404201349/sft_sft_0_202404201349_step20000.pt'
 
 if cfg.pretrain == "huggingface":
