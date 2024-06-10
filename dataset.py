@@ -3,18 +3,16 @@ from datasets import load_dataset, Features
 from transformers import GPT2Tokenizer, GPT2TokenizerFast
 import torch
 from tqdm import tqdm
-import random
-import json
+import pickle
 from tokenizer import TiktokenTokenizer
 from configs import get_configs
 from gpt import GPTActor
 
-from transformers import GPT2Tokenizer
 from tokenizer import TiktokenTokenizer
 from datasets import load_dataset
 from evaluate import generate_gpt2
 
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 import torch
 import tqdm
 
@@ -145,7 +143,7 @@ class Read_RM_Filtered_Data(Dataset):
             self.masks.append(data['masks'])
 
     @classmethod
-    def save(cls, split, fp):
+    def save(self, cls, split, fp):
         examples = []
         for i in range(len(self.pairs)):
             examples.append((self.pairs[i], self.masks[i]))
@@ -157,3 +155,54 @@ class Read_RM_Filtered_Data(Dataset):
 
     def __getitem__(self, idx):
         return self.pairs[idx], self.masks[idx]
+
+
+class DahoasSFTStaticPromptsDataset(Dataset):
+
+    def __init__(self,
+                 block_size,
+                 max_examples=None,
+                 tokenizer_name='tiktoken/gpt2') -> None:
+        super().__init__()
+        dataset = load_dataset("Dahoas/rm-static", split="train")
+        self.prompts = []
+
+        if tokenizer_name == "huggingface/gpt2":
+            tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+            tokenizer.pad_token = tokenizer.eos_token
+        elif tokenizer_name == "huggingface/gpt2fast":
+            tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+        elif tokenizer_name == "tiktoken/gpt2":
+            tokenizer = TiktokenTokenizer('gpt2')
+
+        cnt = 0
+        print(f"Loading DahoasSFTStaticPromptsDataset")
+        for data in dataset:
+            cnt += 1
+            prompt = data['prompt']
+            tokens = tokenizer(prompt,
+                               max_length=block_size,
+                               padding="max_length",
+                               truncation=True,
+                               return_tensors="pt")
+
+            self.prompts.append(
+                [tokens['input_ids'], tokens['attention_mask'], torch.sum(tokens['attention_mask'])])
+
+            if max_examples and cnt >= max_examples:
+                break
+
+    @classmethod
+    def save(cls, split, fp):
+        dataset = load_dataset("fka/awesome-chatgpt-prompts", split=split)
+        examples = []
+        for data in tqdm(dataset):
+            examples.append(data["prompt"])
+        import json
+        json.dump(examples, fp)
+
+    def __len__(self):
+        return len(self.prompts)
+
+    def __getitem__(self, idx):
+        return self.prompts[idx][0], self.prompts[idx][1], self.prompts[idx][2]  # (1, T), (1, T)
