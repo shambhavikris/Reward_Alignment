@@ -1,7 +1,7 @@
 from trainers import RewardModelTrainer
 from configs import get_configs
 from gpt import GPTRewardModel
-from dataset import DahoasRMStaticDataset_Filtered
+from dataset import Read_RM_Filtered_Data
 import torch._dynamo
 torch._dynamo.config.suppress_errors = True
 
@@ -11,22 +11,17 @@ cfg.batch_size = 1
 cfg.pretrain = './sft_sft_0_202404201349/sft_sft_0_202404201349_step20000.pt'
 cfg.total_epochs = 1
 cfg.exp_name = 'rm_frft_may8'
-generationmodel = './sft_sft_0_202404201349/sft_sft_0_202404201349_step20000.pt'
+
+path_train = 'path/to_train_subset_for_that_epoch'
+path_test = 'path/to_test_subset_for_that_epoch'
 
 if cfg.pretrain == "huggingface":
     rm = GPTRewardModel.from_pretrained(cfg)
 else:
     rm = GPTRewardModel.from_backbone_checkpoint(cfg, cfg.pretrain)
 
-train_ds = DahoasRMStaticDataset_Filtered(block_size=1024,
-                                    split='train',
-                                    current_model_path=generationmodel,
-                                    max_examples=2000,
-                                    tokenizer_name="tiktoken/gpt2")
-test_ds = DahoasRMStaticDataset_Filtered(block_size=1024,
-                                split='test',
-                                current_model_path=generationmodel,
-                                max_examples=200,
-                                tokenizer_name="tiktoken/gpt2")
+train_ds = Read_RM_Filtered_Data(path_train)
+test_ds = Read_RM_Filtered_Data(path_test)
+
 trainer = RewardModelTrainer(cfg, device, rm, train_ds, test_ds)
 trainer.fit()
