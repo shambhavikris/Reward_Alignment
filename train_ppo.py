@@ -33,7 +33,7 @@ def train(batch_size, exp_name, actor_weights, critic_weights):
     critic.freeze_weights("lora")
 
     dataset = DahoasSFTStaticPromptsDataset(block_size=1024,
-                                            max_examples=None,
+                                            max_examples=2000,
                                             tokenizer_name="tiktoken/gpt2")
     trainer = PPOTrainer(cfg, actor, critic, reward_model, sft_model, dataset)
     trainer.fit()
