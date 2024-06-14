@@ -206,3 +206,55 @@ class DahoasSFTStaticPromptsDataset(Dataset):
 
     def __getitem__(self, idx):
         return self.prompts[idx][0], self.prompts[idx][1], self.prompts[idx][2]  # (1, T), (1, T)
+
+
+class DahoasSFTStaticPromptsDataset_ITER2(Dataset):
+
+    def __init__(self,
+                 block_size,
+                 max_examples=None,
+                 tokenizer_name='tiktoken/gpt2') -> None:
+        super().__init__()
+        dataset = load_dataset("Dahoas/rm-static", split="train")
+        self.prompts = []
+
+        if tokenizer_name == "huggingface/gpt2":
+            tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+            tokenizer.pad_token = tokenizer.eos_token
+        elif tokenizer_name == "huggingface/gpt2fast":
+            tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+        elif tokenizer_name == "tiktoken/gpt2":
+            tokenizer = TiktokenTokenizer('gpt2')
+
+        cnt = 0
+        print(f"Loading DahoasSFTStaticPromptsDataset")
+        for i,data in enumerate(dataset):
+            if i < 2000: continue
+            cnt += 1
+            prompt = data['prompt']
+            tokens = tokenizer(prompt,
+                               max_length=block_size,
+                               padding="max_length",
+                               truncation=True,
+                               return_tensors="pt")
+
+            self.prompts.append(
+                [tokens['input_ids'], tokens['attention_mask'], torch.sum(tokens['attention_mask'])])
+
+            if max_examples and cnt >= max_examples:
+                break
+
+    @classmethod
+    def save(cls, split, fp):
+        dataset = load_dataset("fka/awesome-chatgpt-prompts", split=split)
+        examples = []
+        for data in tqdm(dataset):
+            examples.append(data["prompt"])
+        import json
+        json.dump(examples, fp)
+
+    def __len__(self):
+        return len(self.prompts)
+
+    def __getitem__(self, idx):
+        return self.prompts[idx][0], self.prompts[idx][1], self.prompts[idx][2]  # (1, T), (1, T)
